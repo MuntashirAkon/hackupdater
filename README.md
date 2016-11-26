@@ -43,7 +43,8 @@ A startup script for OSx86 (Hackintosh) user to install kexts or run scripts on 
   ```shell
   hackupdater list script
   ```
-4. To run hackupdater manually instead of automatically on reboot (it's actually useless, still included)
+4. To run hackupdater manually (it's actually useless since it already took care of everything, still included)
+
   ```shell
   sudo hackupdater update
   ```
