@@ -1,0 +1,181 @@
+#!/usr/bin/php
+<?php
+/**
+ * hackupdater
+ *
+ * A startup script for OSx86 (Hackintosh) user to
+ * install kexts or run scripts on update or upgrade
+ *
+ * Created by PhpStorm.
+ * User: muntashir
+ * Date: 11/26/16
+ * Time: 1:21 PM
+ *
+ * @copyright 2016 (c) Muntashir Al-Islam <muntashir.islam96@gmail.com>
+ * @license Apache License 2.0
+ */
+error_reporting(0);
+date_default_timezone_set('UTC');
+
+define('SUCCESS', 0);
+define('FAILED', 1);
+
+$verb = $argv[1]; // add|remove|list|help|update
+$option = $argv[2]; // kext|script
+$dir = $argv[3]; // [dir]
+
+
+/** @var string $name command name */
+$name = 'hackupdater';
+/** @var string $wd working directory */
+$wd = '/Users/Shared/.hackupdater';
+/** @var string $version filename to save version */
+$version = "{$wd}/version";
+
+// Check if the working directory exists. If not create one
+if (!file_exists($wd)){
+    echo "{$name}: working directory doesn't exist. creating it... ";
+    if(exec("mkdir {$wd}") == SUCCESS){
+        file_put_contents("{$version}", getVersion());
+        exec("mkdir {$wd}/../Backups"); // kext backup dir /Users/Shared/Backups/
+        exec("mkdir {$wd}/logs");
+        exec("touch {$wd}/logs/in.log {$wd}/logs/out.log {$wd}/logs/error.log");
+        echo "Done.\n";
+    }else{
+        exit("Can't create! Exiting...\n");
+    }
+}
+
+switch ($verb){
+    case "add":
+        if(in_array($option, ["kext", "script"]) && $dir != "") {
+            if (!file_exists("{$wd}/{$option}s")) exec("sudo mkdir {$wd}/{$option}s");
+            exec("sudo cp -R {$dir} {$wd}/{$option}s");
+            exit("{$option} added!\n");
+        }else exit("Wrong command. type: {$name} help for help\n");
+        break;
+    case "remove":
+        if(in_array($option, ["kext", "script"]) && $dir != "") {
+            if (file_exists("{$wd}/{$option}s/{$dir}")) exec("sudo rm -R {$wd}/{$option}s/{$dir}");
+            exit("{$dir} removed\n");
+        }else exit("Wrong command. type: {$name} help for help\n");
+        break;
+    case "list":
+        $dir = "{$wd}/{$option}s";
+        if(file_exists($dir)) exit(exec("ls {$dir}")."\n");
+        else exit("\n");
+        break;
+    case "update": // do update
+        // print execution time
+        echo "{$name}: running at ".((new DateTime('NOW'))->format('Y/d/m H:i:s'))."\n";
+
+        if(isUpdated()){
+            // do tasks
+            echo "{$name}: macOS is updated or upgraded.\n";
+            // install kexts
+            /** @var bool $needReboot */
+            $needReboot = (installKexts() > 0) ? true : false;
+            // run scripts
+            runScripts();
+            // keep the updated data
+            file_put_contents($version, getVersion());
+            // now exit or shutdown
+            echo "{$name}: ";
+            exit(($needReboot) ? (exec('sudo shutdown -r now') == SUCCESS && "rebooting...\n") : "Done.\n");
+        }else{
+            exit("{$name}: macOS is not updated or upgraded. Exiting...\n");
+        }
+        break;
+    case "help":
+    default:
+        exit("Usage: ${name} [update|add|remove|list|help] [kext|script] [dir|filename]\n");
+}
+
+
+
+/**
+ * isUpdated function
+ *
+ * Checks whether updated or not
+ * returns true on update and vice versa
+ *
+ * @return bool
+ */
+function isUpdated(){
+    global $version;
+    return (file_get_contents("{$version}") != getVersion());
+}
+
+/**
+ * getVersion
+ *
+ * Gets version from sw_vers
+ *
+ * @return string product:build
+ */
+function getVersion(){
+    exec('sw_vers', $version);
+    $product = explode(":\t", $version[1]);
+    $build = explode(":\t", $version[2]);
+    return "{$product[1]}:{$build[1]}";
+}
+
+/**
+ * installKext function
+ *
+ * Installs the kexts located at ~/.hackupdater/kexts
+ * takes backup if necessary
+ * and rebuilds kernel cache
+ *
+ * @return int
+ */
+function installKexts(){
+    global $wd, $name;
+    $pwd = "{$wd}/kexts";
+    /** @var string $install_dir */
+    $install_dir = '/System/Library/Extensions';
+    $backup_dir = "{$wd}/../Backups/kexts_backup_".((new DateTime('NOW'))->format('Y-d-m_H:i:s'));
+    if(!file_exists($backup_dir)) exec("mkdir {$backup_dir}");
+    if(!file_exists($pwd)) exec("mkdir {$pwd}");
+    exec("ls {$pwd}", $kexts);
+    $total_kexts = count($kexts);
+    if($total_kexts > 0){
+        echo "{$name}: installing kext(s)...";
+        foreach ($kexts as $kext){
+            // backup kext
+            if(file_exists("{$install_dir}/{$kext}")){
+                exec("sudo mv {$install_dir}/{$kext} {$backup_dir}");
+            }
+            // install kext
+            exec("sudo cp -R {$pwd}/{$kext} {$install_dir}");
+            // repair permission
+            exec("sudo chown -R root:wheel {$install_dir}/{$kext}");
+        }
+        echo "Done.\n{$name}: Rebuiling cache...";
+        // rebuild cache
+        exec('sudo touch /S*/L*/Extensions && sudo kextcache -Boot -U /');
+        echo "Done.\n";
+    }
+    return $total_kexts;
+}
+
+/**
+ * runScripts function
+ *
+ * Runs scripts from ~/.hackupdater/scripts
+ *
+ * @return bool
+ */
+function runScripts(){
+    global $wd, $name;
+    $pwd = "{$wd}/scripts";
+    if(!file_exists($pwd)) exec("mkdir {$pwd}");
+    exec("ls {$pwd}", $scripts);
+    $total_scripts = count($scripts);
+    if($total_scripts > 0) echo "{$name}: running scripts...\n";
+    foreach ($scripts as $script){
+        // run scripts
+        exec("{$pwd}/{$script}");
+    }
+    return true;
+}

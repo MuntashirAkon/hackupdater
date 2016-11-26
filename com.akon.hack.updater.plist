@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+    <dict>
+        <key>Label</key>
+        <string>com.akon.hack.updater</string>
+        <key>ProgramArguments</key>
+        <array>
+            <string>/usr/bin/hackupdater</string>
+            <string>update</string>
+        </array>
+        <key>RunAtLoad</key>
+        <true/>
+        <key>StandardInPath</key>
+        <string>/Users/Shared/.hackupdater/logs/in.log</string>
+        <key>StandardOutPath</key>
+        <string>/Users/Shared/.hackupdater/logs/out.log</string>
+        <key>StandardErrorPath</key>
+        <string>/Users/Shared/.hackupdater/logs/error.log</string>
+    </dict>
+</plist>

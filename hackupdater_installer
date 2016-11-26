@@ -1,0 +1,10 @@
+#!/bin/bash
+
+echo "Installing hackupdater..."
+sudo cp hackupdater /usr/bin/
+chmod +x /usr/bin/hackupdater
+echo -en "Done.\nConfiguring..."
+sudo cp com.akon.hack.updater.plist /Library/LaunchDaemons/
+sudo chown root:wheel /Library/LaunchDaemons/com.akon.hack.updater.plist
+launchctl load -w /Library/LaunchDaemons/com.akon.hack.updater.plist
+echo "Done."
