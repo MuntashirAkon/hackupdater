@@ -20,7 +20,7 @@ date_default_timezone_set('UTC');
 define('SUCCESS', 0);
 define('FAILED', 1);
 
-$verb = $argv[1]; // add|remove|list|help|update
+$verb = $argv[1]; // add|remove|list|help|update|edit
 $option = $argv[2]; // kext|script
 $dir = $argv[3]; // [dir]
 
@@ -62,8 +62,32 @@ switch ($verb){
         break;
     case "list":
         $dir = "{$wd}/{$option}s";
-        if(file_exists($dir)) exit(exec("ls {$dir}")."\n");
-        else exit("\n");
+        if(file_exists($dir)){
+            system("ls {$dir}");
+            exit(0);
+        }else exit("Wrong command. type: {$name} help for help\n");
+        break;
+    case "edit":
+        $script = "{$wd}/scripts/{$option}";
+        define('EDITOR', 'nano'); // also 'default'
+        if(!empty($option)){
+            if(EDITOR == 'nano'){
+                $file = "/tmp/hu_tmp.command";
+                $out = <<< EOF
+#!/bin/bash
+if [ ! -f {$script} ]; then
+    sudo touch "{$script}"
+    sudo chmod +x "{$script}"
+fi
+sudo nano "{$script}"
+EOF;
+                file_put_contents($file, $out);
+                exec("chmod +x {$file} && open {$file}");
+            }else system("sudo open \"{$script}\"");
+            exit(0);
+        }else{
+            exit("No filename is provided!\n");
+        }
         break;
     case "update": // do update
         // print execution time
@@ -88,7 +112,7 @@ switch ($verb){
         break;
     case "help":
     default:
-        exit("Usage: ${name} [update|add|remove|list|help] [kext|script] [dir|filename]\n");
+        exit("Usage: ${name} [update|add|remove|list|edit|help] [kext|script] [dir|filename]\n");
 }
 
 
