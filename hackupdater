@@ -72,13 +72,13 @@ switch ($verb){
         if(isUpdated()){
             // do tasks
             echo "{$name}: macOS is updated or upgraded.\n";
+            // keep the updated data
+            file_put_contents($version, getVersion());
             // install kexts
             /** @var bool $needReboot */
             $needReboot = (installKexts() > 0) ? true : false;
             // run scripts
             runScripts();
-            // keep the updated data
-            file_put_contents($version, getVersion());
             // now exit or shutdown
             echo "{$name}: ";
             exit(($needReboot) ? (exec('sudo shutdown -r now') == SUCCESS && "rebooting...\n") : "Done.\n");
