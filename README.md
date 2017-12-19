@@ -11,48 +11,50 @@ A startup script for OSx86 (Hackintosh) user to install kexts or run scripts on 
 *NOTE 2:* Backup of your existing kext(s) can be found here: `/Users/Shared/Backups`
 
 ## Usage:
-1. Add/remove a kext
-  To add a kext,
+1. **Add/remove a kext**
+   
+   To add a kext,
+   ```bash
+   sudo hackupdater add kext /path/to/kext.kext
+   ```
+   To remove a kext,
+   ```bash
+   sudo hackupdater remove kext kext.kext
+   ```
+2. **Add/edit/remove a script**
   
-  ```shell
-  sudo hackupdater add kext /path/to/kext.kext
-  ```
-  To remove a kext,
-  
-  ```shell
-  sudo hackupdater remove kext kext.kext
-  ```
-2. Add/remove a script
-  To add a script,
-  
-  ```shell
-  sudo hackupdater add script /path/to/script
-  ```
-  To remove a script,
-  ```shell
-  sudo hackupdater remove script script
-  ```
-3. List added kexts/scripts
-  To list kexts,
+   To add a script,
+   ```bash
+   sudo hackupdater add script /path/to/script
+   ```
+   To edit (or add) a script,
+   ```bash
+   hackupdater edit script_name
+   ```
+   To remove a script,
+   ```bash
+   sudo hackupdater remove script script
+   ```
+3. **List added kexts/scripts**
 
-  ```shell
-  hackupdater list kext
-  ```
-  To list scripts,
+   To list kexts,
+   ```bash
+   hackupdater list kext
+   ```
+   To list scripts,
+   ```bash
+   hackupdater list script
+   ```
+4. **To run hackupdater manually** (it's actually useless since it already took care of everything, still included)
 
-  ```shell
-  hackupdater list script
-  ```
-4. To run hackupdater manually (it's actually useless since it already took care of everything, still included)
+   ```bash
+   sudo hackupdater update
+   ```
+5. **For help**
 
-  ```shell
-  sudo hackupdater update
-  ```
-5. For help
-
-  ```shell
-  hackupdater help
-  ```
+   ```bash
+   hackupdater help
+   ```
 
 ## How it works
 hackupdater is created using `PHP CLI`. It always triggers at startup and checks if the OS is updated. If not, it'll remain silent. Otherwise, it'll install the kexts and run the scripts you added (that means, it can be used to run post update scripts too).
